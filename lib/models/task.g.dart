@@ -15,7 +15,7 @@ extension GetTaskCollection on Isar {
 
 const TaskSchema = CollectionSchema(
   name: r'Task',
-  id: 2998003626758701373,
+  id: 1, // Patch for JS (Safe within 53-bit range)
   properties: {
     r'createdAt': PropertySchema(
       id: 0,
