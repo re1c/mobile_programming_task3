@@ -1,44 +1,75 @@
 import 'dart:async';
-import 'package:isar/isar.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive_ce/hive.dart';
 import '../models/task.dart';
 import '../services/database_service.dart';
 
 class TaskController {
-  // Shared In-memory storage for Web (fallback)
+  // Shared In-memory storage (fallback if Hive fails)
   static final List<Task> _memoryTasks = [];
   
-  // Stream controller to broadcast state changes on Web
-  static final _webStreamController = StreamController<List<Task>>.broadcast();
+  // Stream controller to broadcast state changes
+  static final _dataStreamController = StreamController<List<Task>>.broadcast();
 
-  /// Watches all tasks. Returns the reactive In-Memory stream.
+  /// Watches all tasks. Returns a persistent stream from Hive (Web) or Isar (Mobile).
   Stream<List<Task>> watchTasks() {
-    _sortMemoryTasks();
-    _webStreamController.add(List.from(_memoryTasks));
-    return _webStreamController.stream;
+    if (DatabaseService.tasksBox != null) {
+      // Return a stream that emits from the Hive box whenever it changes.
+      // We use 'asBroadcastStream' and 'onListen' to ensure the first event is sent.
+      return DatabaseService.tasksBox!.watch().map((_) => _getTasksFromHive())
+          .asBroadcastStream(onListen: (_) => _refreshHive());
+    }
+    
+    // Fallback: Memory stream
+    _dataStreamController.add(List.from(_memoryTasks));
+    return _dataStreamController.stream;
   }
 
-  /// Adds a new task. In this build, it focuses on stability for Chrome.
+  void _refreshHive() {
+    _dataStreamController.add(_getTasksFromHive());
+  }
+
+  List<Task> _getTasksFromHive() {
+    if (DatabaseService.tasksBox == null) return [];
+    
+    // Map Hive data back to Task objects and sort by newest first.
+    return DatabaseService.tasksBox!.values
+        .map((e) => Task.fromMap(Map<String, dynamic>.from(e)))
+        .toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
+
+  /// Adds a new task. Persists to Hive Box on Web.
   Future<void> addTask(String title, String description) async {
     final task = Task()
+      ..id = DateTime.now().millisecondsSinceEpoch
       ..title = title
       ..description = description
       ..createdAt = DateTime.now()
       ..isDone = false;
 
-    // Simulate ID and add to memory for the demonstration
-    task.id = DateTime.now().millisecondsSinceEpoch;
-    _memoryTasks.add(task);
-    _sortMemoryTasks();
-    _webStreamController.add(List.from(_memoryTasks));
+    if (DatabaseService.tasksBox != null) {
+      await DatabaseService.tasksBox!.put(task.id, task.toMap());
+      _refreshHive();
+    } else {
+      // Memory fallback
+      _memoryTasks.add(task);
+      _sortMemoryTasks();
+      _dataStreamController.add(List.from(_memoryTasks));
+    }
   }
 
-  /// Updates an existing task in memory.
+  /// Updates an existing task.
   Future<void> updateTask(Task task) async {
-    final index = _memoryTasks.indexWhere((t) => t.id == task.id);
-    if (index != -1) {
-      _memoryTasks[index] = task;
-      _webStreamController.add(List.from(_memoryTasks));
+    if (DatabaseService.tasksBox != null) {
+      await DatabaseService.tasksBox!.put(task.id, task.toMap());
+      _refreshHive();
+    } else {
+      final index = _memoryTasks.indexWhere((t) => t.id == task.id);
+      if (index != -1) {
+        _memoryTasks[index] = task;
+        _dataStreamController.add(List.from(_memoryTasks));
+      }
     }
   }
 
@@ -48,10 +79,15 @@ class TaskController {
     await updateTask(task);
   }
 
-  /// Deletes a task from the in-memory demo store.
+  /// Deletes a task from the persistent store.
   Future<void> deleteTask(int id) async {
-    _memoryTasks.removeWhere((t) => t.id == id);
-    _webStreamController.add(List.from(_memoryTasks));
+    if (DatabaseService.tasksBox != null) {
+      await DatabaseService.tasksBox!.delete(id);
+      _refreshHive();
+    } else {
+      _memoryTasks.removeWhere((t) => t.id == id);
+      _dataStreamController.add(List.from(_memoryTasks));
+    }
   }
 
   /// Helper to keep memory tasks sorted by creation date (newest first).
