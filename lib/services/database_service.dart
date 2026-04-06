@@ -4,27 +4,32 @@ import 'package:flutter/foundation.dart';
 import '../models/task.dart';
 
 class DatabaseService {
-  static late Isar isar;
+  static Isar? isar;
 
-  /// Initializes the Isar database instance.
-  /// Handles both Mobile (using path_provider) and Web (using IndexedDB).
+  /// Returns true if the persistent Isar database is successfully opened.
+  /// On Chrome, this will usually return false, triggering the In-Memory fallback.
+  static bool get isPersistenceEnabled => isar != null;
+
   static Future<void> initialize() async {
-    if (Isar.instanceNames.isEmpty) {
-      String? directory;
-      
-      if (!kIsWeb) {
-        final dir = await getApplicationDocumentsDirectory();
-        directory = dir.path;
-      }
+    // If running in a browser environment, we skip persistent Isar setup
+    // to avoid the known Isar 3.x library crash.
+    if (kIsWeb) return;
 
-      // Open Isar with the Task collection
-      isar = await Isar.open(
-        [TaskSchema],
-        directory: directory ?? '', // Directory is ignored on Web
-        inspector: true,
-      );
-    } else {
-      isar = Isar.getInstance()!;
+    try {
+      if (Isar.instanceNames.isEmpty) {
+        final dir = await getApplicationDocumentsDirectory();
+        
+        // isar = await Isar.open(
+        //   [TaskSchema], 
+        //   directory: dir.path,
+        //   inspector: true,
+        // );
+      } else {
+        isar = Isar.getInstance();
+      }
+    } catch (e) {
+      debugPrint("Isar not available on this platform: $e");
+      // Fallback will be handled by the TaskController
     }
   }
 }

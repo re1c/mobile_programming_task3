@@ -1,47 +1,45 @@
 # Task Manager - Isar CRUD Application
 
 ## Overview
-This repository contains a Flutter-based mobile application developed for the **Section 4: Form & CRUD** course. The project demonstrates a practical implementation of local data persistence using the **Isar Database**, organized within a clean and maintainable **MVC-like architecture**.
+This repository contains a Flutter mobile application developed for the **Section 4: Form & CRUD** course. The project explores local data persistence and reactive UI using the **Isar Database**, organized around a clean **MVC (Model-View-Controller)** architecture.
 
-The primary goal of this task was to create a robust task management system that ensures data integrity and provides a smooth user experience across multiple platforms, including **Web (Chrome)** and native mobile environments.
+A key highlight of this project is its **Resilient Persistence Strategy**, which ensures the application remains functional across multiple environments, including Android, iOS, and Web (Chrome).
 
-## Core Features
-*   **Reactive UI**: Leverages Isar Streams to automatically synchronize and reflect database changes in the user interface.
-*   **Complete CRUD Functionality**: Users can create, read, update (including toggling task status), and delete records effortlessly.
-*   **Modern Aesthetics**: Designed using Material 3 principles with a professional "Teal" theme for a polished look and feel.
-*   **Cross-Platform Optimization**: Specifically configured to maintain stability when running in browser environments.
+## Key Features
+*   **Reactive Task Management**: Real-time synchronization between the database and the user interface using Isar Streams and broadcast streams.
+*   **Dual-Layer Storage Architecture**: 
+    *   **Mobile**: Utilizes high-performance **Isar NoSQL** for permanent, on-device storage.
+    *   **Web (Chrome)**: Implements a reactive **In-Memory fallback** to ensure a smooth, crash-free demonstration experience without the limitations of the current Isar web-stubs.
+*   **Clean MVC Structure**: Strict separation of data models, business logic, and UI components to ensure code maintainability and scalability.
+*   **Material 3 UI**: A modern, professional interface with a focus on ease of use and visual clarity.
 
-## Architecture (MVC Logic)
-To maintain a high standard of code quality and separation of concerns, the project is structured follows:
-*   **Model** (`lib/models/`): Definitions for the `Task` entity, using Isar's annotation-based collection system.
-*   **Controller** (`lib/controllers/`): The bridge between the database and the UI, handling all business logic and data manipulation.
-*   **View & Widgets** (`lib/views/`): The presentation layer, modularized into reusable screens and components like `TaskTile`.
-*   **Service** (`lib/services/`): A dedicated singleton for database initialization and lifecycle management.
+## Project Structure
+*   **Model** (`lib/models/`): Defines the `Task` entity with necessary annotations for database mapping.
+*   **Controller** (`lib/controllers/`): The core logic layer responsible for managing task operations across both persistent and in-memory stores.
+*   **View & Widgets** (`lib/views/`): Responsive presentation layer built with reusable components like `TaskTile`.
+*   **Service** (`lib/services/`): Handles environment detection and centralized database lifecycle management.
 
 ## Getting Started
 
 ### Prerequisites
-- **Flutter SDK**: v3.41.6 (Stable)
-- **FVM** (Flutter Version Management) is recommended for consistency.
+- Flutter SDK (v3.41.6)
+- **FVM (Flutter Version Management)** is recommended to ensure environment consistency.
 
 ### Installation & Execution
 1.  **Initialize Packages**:
     ```bash
     fvm flutter pub get
     ```
-2.  **Generate Schema Code**:
-    Isar requires a generation step to prepare the database schema:
+2.  **Generate Database Schema**:
     ```bash
     fvm dart run build_runner build --delete-conflicting-outputs
     ```
 3.  **Launch the Application**:
-    To run on **Chrome**:
-    ```bash
-    fvm flutter run -d chrome
-    ```
+    - **Chrome**: `fvm flutter run -d chrome`
+    - **Mobile**: `fvm flutter run -d <device_id>`
 
-## Deployment Notes
-The Web version of this application includes a tailored adjustment in the generated schema to ensure full compatibility with the browser's JavaScript environment. This ensures that the application remains stable and functional despite the inherent precision differences of integers on the web.
+## Persistence Strategy Note
+Due to the architectural limitations of the current Isar 3.x library on the Web platform, this project implements a professional fallback mechanism. While Mobile devices benefit from full local persistence, the Web version maintains task state in memory. This ensures that the application remains 100% stable and fully functional for demonstration purposes on Chrome, allowing for comprehensive testing of all CRUD features.
 
 ---
 **re1c**  

@@ -1,17 +1,32 @@
+import 'dart:async';
 import 'package:isar/isar.dart';
+import 'package:flutter/foundation.dart';
 import '../models/task.dart';
 import '../services/database_service.dart';
 
 class TaskController {
-  final Isar isar = DatabaseService.isar;
+  // Shared In-memory storage for Web (fallback)
+  static final List<Task> _memoryTasks = [];
+  
+  // Stream controller to broadcast state changes on Web
+  static final _webStreamController = StreamController<List<Task>>.broadcast();
 
-  /// Fetch all tasks from the database, sorted by creation date (newest first).
-  /// Returns a Stream that updates automatically when the database changes.
+  /// Watches all tasks. If persistence is enabled (Mobile), it uses Isar.
+  /// If running on Web, it returns the In-Memory stream.
   Stream<List<Task>> watchTasks() {
-    return isar.tasks.where().sortByCreatedAtDesc().watch(fireImmediately: true);
+    if (DatabaseService.isPersistenceEnabled) {
+      return DatabaseService.isar!.tasks.where()
+          .sortByCreatedAtDesc()
+          .watch(fireImmediately: true);
+    } else {
+      // Refresh current memory view
+      _sortMemoryTasks();
+      _webStreamController.add(List.from(_memoryTasks));
+      return _webStreamController.stream;
+    }
   }
 
-  /// Add a new task to the database.
+  /// Adds a new task.
   Future<void> addTask(String title, String description) async {
     final task = Task()
       ..title = title
@@ -19,28 +34,54 @@ class TaskController {
       ..createdAt = DateTime.now()
       ..isDone = false;
 
-    await isar.writeTxn(() async {
-      await isar.tasks.put(task);
-    });
+    if (DatabaseService.isPersistenceEnabled) {
+      await DatabaseService.isar!.writeTxn(() async {
+        await DatabaseService.isar!.tasks.put(task);
+      });
+    } else {
+      // Simulate ID and add to memory
+      task.id = DateTime.now().millisecondsSinceEpoch;
+      _memoryTasks.add(task);
+      _sortMemoryTasks();
+      _webStreamController.add(List.from(_memoryTasks));
+    }
   }
 
-  /// Update an existing task in the database.
+  /// Updates an existing task.
   Future<void> updateTask(Task task) async {
-    await isar.writeTxn(() async {
-      await isar.tasks.put(task);
-    });
+    if (DatabaseService.isPersistenceEnabled) {
+      await DatabaseService.isar!.writeTxn(() async {
+        await DatabaseService.isar!.tasks.put(task);
+      });
+    } else {
+      final index = _memoryTasks.indexWhere((t) => t.id == task.id);
+      if (index != -1) {
+        _memoryTasks[index] = task;
+        _webStreamController.add(List.from(_memoryTasks));
+      }
+    }
   }
 
-  /// Toggle the completion status of a task.
+  /// Toggles the completion status.
   Future<void> toggleDone(Task task) async {
     task.isDone = !task.isDone;
     await updateTask(task);
   }
 
-  /// Delete a task from the database by its ID.
+  /// Deletes a task.
   Future<void> deleteTask(int id) async {
-    await isar.writeTxn(() async {
-      await isar.tasks.delete(id);
-    });
+    if (DatabaseService.isPersistenceEnabled) {
+      await DatabaseService.isar!.writeTxn(() async {
+        await DatabaseService.isar!.tasks.delete(id);
+      });
+    } else {
+      _memoryTasks.removeWhere((t) => t.id == id);
+      _webStreamController.add(List.from(_memoryTasks));
+    }
+  }
+
+  /// Helper to keep memory tasks sorted by creation date (newest first).
+  void _sortMemoryTasks() {
+    _memoryTasks.sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 }
