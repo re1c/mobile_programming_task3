@@ -14,7 +14,7 @@ class Task {
 
   bool isDone = false;
 
-  /// Helper to convert Task to Map for Hive storage (Web fallback).
+  // Ubah Task ke Map supaya bisa disimpan di Hive Web.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -25,7 +25,7 @@ class Task {
     };
   }
 
-  /// Helper to create Task from Map for Hive storage (Web fallback).
+  // Ambil data Map dari Hive dan jadikan objek Task lagi.
   static Task fromMap(Map<String, dynamic> map) {
     return Task()
       ..id = map['id'] ?? 0

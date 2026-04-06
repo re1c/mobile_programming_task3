@@ -7,22 +7,22 @@ class DatabaseService {
   static Isar? isar;
   static Box? tasksBox;
 
-  /// Returns true if either Isar (Mobile) or Hive (Web) is successfully opened.
+  // Cek apakah ada database yang aktif untuk menyimpan data.
   static bool get isPersistenceEnabled => isar != null || tasksBox != null;
 
   static Future<void> initialize() async {
-    // If running in a browser, initialize Hive for persistent Web storage.
+    // Jalankan Hive jika di lingkungan Web supaya data tetap tersimpan saat refresh.
     if (kIsWeb) {
       try {
         await Hive.initFlutter();
         tasksBox = await Hive.openBox('tasks_box');
       } catch (e) {
-        debugPrint("Hive initialization failed: $e");
+        debugPrint("Gagal memuat Hive: $e");
       }
       return;
     }
 
-    // In this build, Isar is stubbed for stability until the build_runner is active locally.
+    // Isar butuh build_runner untuk jalan di Mobile, jadi kita siapkan saja dulu.
     return;
   }
 }

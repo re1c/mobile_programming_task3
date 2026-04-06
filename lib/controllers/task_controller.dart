@@ -11,16 +11,15 @@ class TaskController {
   // Stream controller to broadcast state changes
   static final _dataStreamController = StreamController<List<Task>>.broadcast();
 
-  /// Watches all tasks. Returns a persistent stream from Hive (Web) or Isar (Mobile).
+  // Fungsi untuk memantau perubahan data. 
+  // Jika di Web pakai Hive, kalau Isar terdeteksi (Mobile) bisa pakai Isar.
   Stream<List<Task>> watchTasks() {
     if (DatabaseService.tasksBox != null) {
-      // Return a stream that emits from the Hive box whenever it changes.
-      // We use 'asBroadcastStream' and 'onListen' to ensure the first event is sent.
+      // Mengamati box Hive dan memperbarui list setiap ada perubahan.
       return DatabaseService.tasksBox!.watch().map((_) => _getTasksFromHive())
           .asBroadcastStream(onListen: (_) => _refreshHive());
     }
     
-    // Fallback: Memory stream
     _dataStreamController.add(List.from(_memoryTasks));
     return _dataStreamController.stream;
   }
@@ -32,14 +31,14 @@ class TaskController {
   List<Task> _getTasksFromHive() {
     if (DatabaseService.tasksBox == null) return [];
     
-    // Map Hive data back to Task objects and sort by newest first.
+    // Konversi map dari Hive kembali ke objek Task.
     return DatabaseService.tasksBox!.values
         .map((e) => Task.fromMap(Map<String, dynamic>.from(e)))
         .toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
-  /// Adds a new task. Persists to Hive Box on Web.
+  // Menambah data baru ke Hive untuk Web.
   Future<void> addTask(String title, String description) async {
     final task = Task()
       ..id = DateTime.now().millisecondsSinceEpoch
@@ -73,13 +72,13 @@ class TaskController {
     }
   }
 
-  /// Toggles the completion status.
+  /// Toggles the completion status of a task.
   Future<void> toggleDone(Task task) async {
     task.isDone = !task.isDone;
     await updateTask(task);
   }
 
-  /// Deletes a task from the persistent store.
+  /// Deletes a task from the persistent store or memory.
   Future<void> deleteTask(int id) async {
     if (DatabaseService.tasksBox != null) {
       await DatabaseService.tasksBox!.delete(id);

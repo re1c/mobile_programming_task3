@@ -1,45 +1,32 @@
-# Task Manager - Isar CRUD Application
+# Aplikasi Manajemen Tugas - Tugas 3
 
-## Overview
-This repository contains a Flutter mobile application developed for the **Section 4: Form & CRUD** course. The project explores local data persistence and reactive UI using the **Isar Database**, organized around a clean **MVC (Model-View-Controller)** architecture.
+## Tentang Proyek
+Repositori ini adalah hasil pengerjaan **Tugas 3 - Pemrograman Perangkat Bergerak (Section 4: Form & CRUD)**. Projek ini berfokus pada penerapan CRUD sederhana menggunakan database lokal dengan pola arsitektur **MVC (Model-View-Controller)**.
 
-A key highlight of this project is its **Resilient Persistence Strategy**, which ensures the application remains functional across multiple environments, including Android, iOS, and Web (Chrome).
+Tujuan utama saya di sini adalah mencoba memahami bagaimana data bisa tetap tersimpan (persistent) dengan stabil, baik saat dijalankan di perangkat mobile maupun lewat browser.
 
-## Key Features
-*   **Reactive Task Management**: Real-time synchronization between the database and the user interface using Isar Streams and broadcast streams.
-*   **Dual-Layer Storage Architecture**: 
-    *   **Mobile**: Utilizes high-performance **Isar NoSQL** for permanent, on-device storage.
-    *   **Web (Chrome)**: Implements a reactive **In-Memory fallback** to ensure a smooth, crash-free demonstration experience without the limitations of the current Isar web-stubs.
-*   **Clean MVC Structure**: Strict separation of data models, business logic, and UI components to ensure code maintainability and scalability.
-*   **Material 3 UI**: A modern, professional interface with a focus on ease of use and visual clarity.
+## Pendekatan Database
+Dalam pengerjaannya, saya mencoba menggabungkan dua solusi untuk menangani perbedaan platform:
+1.  **Isar Database**: Digunakan untuk lingkungan Mobile (Android/iOS) karena performanya yang responsif.
+2.  **Hive CE**: Digunakan saat dijalankan di Chrome (Web). Saya memilih Hive untuk versi Web karena lebih stabil dalam hal sinkronisasi data di browser tanpa kendala teknis yang rumit.
 
-## Project Structure
-*   **Model** (`lib/models/`): Defines the `Task` entity with necessary annotations for database mapping.
-*   **Controller** (`lib/controllers/`): The core logic layer responsible for managing task operations across both persistent and in-memory stores.
-*   **View & Widgets** (`lib/views/`): Responsive presentation layer built with reusable components like `TaskTile`.
-*   **Service** (`lib/services/`): Handles environment detection and centralized database lifecycle management.
+Pemisahan logika database ini saya letakkan di layer *Service* agar bagian UI dan Controller tetap rapi dan tidak bingung saat harus berpindah platform.
 
-## Getting Started
+## Fitur
+*   Operasi CRUD dasar: Tambah tugas, edit, hapus, dan tandai selesai.
+*   Update antar muka (UI) secara reaktif saat data berubah.
+*   Tampilan Material 3 yang simpel dan fungsional.
 
-### Prerequisites
-- Flutter SDK (v3.41.6)
-- **FVM (Flutter Version Management)** is recommended to ensure environment consistency.
+## Struktur Folder
+*   `lib/models/`: Definisi data dan konversi Map untuk kebutuhan database.
+*   `lib/controllers/`: Penghubung logika antara UI dan database.
+*   `lib/services/`: Inisialisasi Isar dan Hive.
+*   `lib/views/` & `lib/widgets/`: Komponen tampilan aplikasi.
 
-### Installation & Execution
-1.  **Initialize Packages**:
-    ```bash
-    fvm flutter pub get
-    ```
-2.  **Generate Database Schema**:
-    ```bash
-    fvm dart run build_runner build --delete-conflicting-outputs
-    ```
-3.  **Launch the Application**:
-    - **Chrome**: `fvm flutter run -d chrome`
-    - **Mobile**: `fvm flutter run -d <device_id>`
-
-## Persistence Strategy Note
-Due to the architectural limitations of the current Isar 3.x library on the Web platform, this project implements a professional fallback mechanism. While Mobile devices benefit from full local persistence, the Web version maintains task state in memory. This ensures that the application remains 100% stable and fully functional for demonstration purposes on Chrome, allowing for comprehensive testing of all CRUD features.
+## Cara Menjalankan
+1.  Jalankan `fvm flutter pub get` untuk mengambil package yang diperlukan.
+2.  Untuk demo di Chrome, jalankan dengan `fvm flutter run -d chrome`.
+3.  (Opsional) Jika ingin mencoba di Mobile, pastikan file pendukung di-generate dulu lewat perintah: `fvm dart run build_runner build`.
 
 ---
 **re1c**  

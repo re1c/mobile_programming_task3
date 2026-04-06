@@ -14,7 +14,7 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   final TaskController _controller = TaskController();
 
-  /// Function to open the task form dialog.
+  // Dialog untuk tambah atau edit data task.
   void _openTaskForm(BuildContext context, {Task? task}) {
     showDialog(
       context: context,
@@ -55,7 +55,7 @@ class _HomeViewState extends State<HomeView> {
                   Icon(Icons.task_alt, size: 80, color: Colors.teal.withOpacity(0.3)),
                   const SizedBox(height: 16),
                   const Text(
-                    'No tasks yet. Add one to get started!',
+                    'Belum ada tugas. Tambahkan satu untuk mulai!',
                     style: TextStyle(color: Colors.grey, fontSize: 16),
                   ),
                 ],

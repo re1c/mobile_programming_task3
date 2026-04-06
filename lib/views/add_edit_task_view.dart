@@ -20,7 +20,7 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
   @override
   void initState() {
     super.initState();
-    // Pre-fill controllers if editing
+    // Isi field secara otomatis kalau sedang dalam mode edit.
     if (widget.task != null) {
       _titleController.text = widget.task!.title;
       _descController.text = widget.task!.description;
@@ -41,7 +41,7 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
-        isEditing ? 'Edit Task' : 'Add New Task',
+        isEditing ? 'Ubah Tugas' : 'Tambah Tugas Baru',
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       content: Form(
@@ -53,18 +53,18 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(
-                  labelText: 'Task Title',
+                  labelText: 'Judul Tugas',
                   prefixIcon: Icon(Icons.title),
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) => 
-                  (value == null || value.isEmpty) ? 'Please enter a title' : null,
+                  (value == null || value.isEmpty) ? 'Judul tidak boleh kosong' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _descController,
                 decoration: const InputDecoration(
-                  labelText: 'Description',
+                  labelText: 'Deskripsi',
                   prefixIcon: Icon(Icons.description),
                   border: OutlineInputBorder(),
                 ),
@@ -77,7 +77,7 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          child: const Text('Batal', style: TextStyle(color: Colors.grey)),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -87,13 +87,13 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               if (isEditing) {
-                // Update existing task
+                // Update data yang sudah ada.
                 final task = widget.task!
                   ..title = _titleController.text
                   ..description = _descController.text;
                 _controller.updateTask(task);
               } else {
-                // Add new task
+                // Tambah data tugas baru.
                 _controller.addTask(
                   _titleController.text, 
                   _descController.text,
@@ -103,7 +103,7 @@ class _AddEditTaskViewState extends State<AddEditTaskView> {
             }
           },
           child: Text(
-            isEditing ? 'Update' : 'Add Task',
+            isEditing ? 'Simpan Perubahan' : 'Tambah Tugas',
             style: const TextStyle(color: Colors.white),
           ),
         ),
