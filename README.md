@@ -78,6 +78,6 @@ lib/
 ---
 **Hormat saya,**
 
-**re1c**  
+**Naswan Nashir**  
 *Pemrograman Perangkat Bergerak (E)*  
 *Institut Teknologi Sepuluh Nopember (ITS)*
